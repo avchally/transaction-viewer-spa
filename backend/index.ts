@@ -24,7 +24,7 @@ const typeDefs = gql`
     reference: String
     amount: Float
     currency: String
-    date: String
+    date: Float
   }
 
   type Account {
@@ -40,13 +40,19 @@ const typeDefs = gql`
     name: String,
     color: String
   }
+
+  input Filter {
+    bank: String,
+    account: String,
+    startMonth: String,
+    endMonth: String
+  }
   
   type Query {
-    transactions(cursor: ID, searchTerm: String): [Transaction]
+    transactions(cursor: ID, searchTerm: String, filter: Filter): [Transaction]
     transaction(id: ID!): Transaction
     categories: [Category]
     accounts: [Account]
-    banks: [String]
   }
 
   type Mutation {
@@ -92,67 +98,98 @@ const transactions = [
 // TODO: move to its own module
 const resolvers = {
   Query: {
-    transactions: (parent: any, args: QueryArgs, context: any, info: any) => {
-      const take = 20;
+    transactions: (parent: unknown, args: QueryArgs, context: unknown, info: unknown) => {
+      const take = 50;
+      const searchTermQuery = [
+        {
+          reference: {
+            contains: args.searchTerm ? args.searchTerm : '',
+            mode: 'insensitive' as const
+          },
+        },
+        {
+          currency: {
+            contains: args.searchTerm ? args.searchTerm : '',
+            mode: 'insensitive' as const
+          },
+        },
+        {
+          amount: args.searchTerm && !isNaN(Number(args.searchTerm)) ? Number(args.searchTerm) : undefined
+        },
+        {
+          account: {
+            OR: [
+              {
+                name: {
+                  contains: args.searchTerm ? args.searchTerm : '',
+                  mode: 'insensitive' as const
+                }
+              },
+              {
+                bank: {
+                  contains: args.searchTerm ? args.searchTerm : '',
+                  mode: 'insensitive' as const
+                }
+              }
+            ]
+          }
+        },
+        {
+          category: {
+            OR: [
+              {
+                name: {
+                  contains: args.searchTerm ? args.searchTerm : '',
+                  mode: 'insensitive' as const
+                }
+              },
+              {
+                color: {
+                  contains: args.searchTerm ? args.searchTerm : '',
+                  mode: 'insensitive' as const
+                }
+              }
+            ]
+          }
+        },
+        // If there is time, figure out how to search by date
+        // {
+        //   AND: [
+        //     {
+        //       date: {
+        //         gte: args.searchTerm && !isNaN(Number(args.searchTerm)) ? new Date(args.searchTerm) : undefined
+        //       }
+        //     },
+        //     {
+        //       date: {
+        //         lt: args.searchTerm && !isNaN(Number(args.searchTerm)) ? new Date(Number(args.searchTerm) + 86400000): undefined
+        //       }
+        //     }
+        //   ]
+        // }
+      ];
+      const filterQuery = {
+        account: {
+          name: args.filter && args.filter.account ? args.filter.account : undefined,
+          bank: args.filter && args.filter.bank ? args.filter.bank : undefined
+        },
+        AND: [
+          {
+            date: {
+              gte: args.filter && args.filter.startMonth ? new Date(args.filter.startMonth) : undefined
+            }
+          },
+          {
+            date: {
+              lte: args.filter && args.filter.endMonth ? new Date(args.filter.endMonth): undefined
+            }
+          }
+        ]
+      }
       const query = {
         where: {
-          OR: [
-            {
-              reference: {
-                contains: args.searchTerm ? args.searchTerm : '',
-                mode: 'insensitive' as const
-              },
-            },
-            {
-              currency: {
-                contains: args.searchTerm ? args.searchTerm : '',
-                mode: 'insensitive' as const
-              },
-            },
-            {
-              amount: args.searchTerm && !isNaN(Number(args.searchTerm)) ? Number(args.searchTerm) : undefined
-            },
-            {
-              account: {
-                OR: [
-                  {
-                    name: {
-                      contains: args.searchTerm ? args.searchTerm : '',
-                      mode: 'insensitive' as const
-                    }
-                  },
-                  {
-                    bank: {
-                      contains: args.searchTerm ? args.searchTerm : '',
-                      mode: 'insensitive' as const
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              category: {
-                OR: [
-                  {
-                    name: {
-                      contains: args.searchTerm ? args.searchTerm : '',
-                      mode: 'insensitive' as const
-                    }
-                  },
-                  {
-                    color: {
-                      contains: args.searchTerm ? args.searchTerm : '',
-                      mode: 'insensitive' as const
-                    }
-                  }
-                ]
-              }
-            }
-          ]
-          // date: {
-          //   contains: args.search && args.search.date ? args.search.date : ''
-          // },
-
+          OR: searchTermQuery,
+          AND: filterQuery
         },
         orderBy: {
           date: 'asc'
@@ -181,10 +218,11 @@ const resolvers = {
         take,
       });
     },
-    transaction: (parent: any, args: any, context: any, info: any) => {
-      transactions.find(record => record.id === args.id);
-    },
-    categories: () => prisma.category.findMany()
+    // transaction: (parent: any, args: any, context: any, info: any) => {
+    //   transactions.find(record => record.id === args.id);
+    // },
+    categories: () => prisma.category.findMany(),
+    accounts: () => prisma.account.findMany(),
   }
 }
 
