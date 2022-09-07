@@ -4,7 +4,7 @@
       <button @click="showMore">More</button>
       <button @click="applySearch('Band')">Search</button>
       <div class="text-xl">Transactions</div>
-      <div class="text-m border-t-2 border-b-2">Input boxes will go here</div>
+      <FilterBar />
       <Transactions :transactions="transactions" />
     </div>
   </div>
@@ -13,6 +13,7 @@
 <script>
 import gql from 'graphql-tag';
 import Transactions from "./Transactions.vue";
+import FilterBar from "./FilterBar.vue";
 
 export default {
   apollo: {
@@ -69,7 +70,7 @@ export default {
     }
   },
 
-  components: { Transactions },
+  components: { Transactions, FilterBar },
 
   data() {
     return {
