@@ -1,16 +1,29 @@
 <template>
-  <div class="mx-5 my-6 relative shadow-lg sm:rounded-lg">
-    <div class="p-5 relative">
-      <button @click="applySearch('Band')">Search</button>
-      <button @click="showMore">More</button>
-      <div class="text-xl">Transactions</div>
-      <FilterBar
+  <div class="flex justify-center bg-indigo-100">
+    <div class="mx-5 my-6 relative shadow-lg sm:rounded-lg max-w-5xl bg-gray-100">
+      <div class="p-5 relative">
+        <div class="text-xl">Transactions</div>
+        
+        <FilterBar
         :accounts="accounts"
         :banks="banks"
         :query="this.$apollo.queries.transactions"
         @get-search="applySearch"
-      />
-      <Transactions :transactions="transactions" />
+        @get-filter="applyFilter"
+        />
+
+        <Transactions :transactions="transactions" />
+        
+        <div class="flex justify-center">
+          <button 
+            class="m-2 px-10 py-1 rounded-xl bg-gray-300 shadow-sm
+            "
+            @click="showMore"
+            >
+            Load More
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -41,9 +54,14 @@ export default {
         }
       }`,
       variables: {
-          searchTerm: null,
-          cursor: null,
-          filter: null,
+        searchTerm: null,
+        cursor: null,
+        filter: {
+          bank: null,
+          account: null,
+          startMonth: null,
+          endMonth: null,
+        },
       },
     },
     accounts: {
@@ -87,6 +105,11 @@ export default {
     applySearch(searchTerm) {
       this.$apollo.queries.transactions.refetch({ searchTerm });
       this.searchTerm = searchTerm;
+    },
+    applyFilter(filter) {
+      console.log(filter);
+      this.$apollo.queries.transactions.refetch({ filter });
+      this.filter = filter;
     }
   },
 
@@ -102,7 +125,12 @@ export default {
       accounts: [],
       searchTerm: null,
       cursor: null,
-      filter: null,
+      filter: {
+        bank: null,
+        account: null,
+        startMonth: null,
+        endMonth: null,
+      },
     }
   }
 }
