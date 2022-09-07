@@ -1,11 +1,11 @@
 <template>
-  <DataExtractTest />
+  <Overview />
 </template>
 
 <script>
-import DataExtractTest from '../components/DataExtractTest.vue';
+import Overview from '../components/overview/Overview.vue';
 export default {
     name: "IndexPage",
-    components: { DataExtractTest }
+    components: { Overview }
 }
 </script>
