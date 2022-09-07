@@ -40,20 +40,7 @@ export default {
 
   data() {
     return {
-      transactions: [
-        {
-          id: '12341235',
-          reference: 'A reference',
-          amount: '-1234.50',
-          currency: 'GBP',
-        },
-        {
-          id: '54983542',
-          reference: 'Something else',
-          amount: '100.00',
-          currency: 'EUR',
-        },
-      ],
+      transactions: [],
     }
   }
 }
