@@ -1,10 +1,15 @@
 <template>
   <div class="mx-5 my-6 relative shadow-lg sm:rounded-lg">
     <div class="p-5 relative">
-      <button @click="showMore">More</button>
       <button @click="applySearch('Band')">Search</button>
+      <button @click="showMore">More</button>
       <div class="text-xl">Transactions</div>
-      <FilterBar />
+      <FilterBar
+        :accounts="accounts"
+        :banks="banks"
+        :query="this.$apollo.queries.transactions"
+        @get-search="applySearch"
+      />
       <Transactions :transactions="transactions" />
     </div>
   </div>
@@ -40,8 +45,23 @@ export default {
           cursor: null,
           filter: null,
       },
-
-    }
+    },
+    accounts: {
+      query: gql`query Accounts {
+        accounts {
+          name
+        }
+      }`,
+      update: data => [... new Set(data.accounts.map(account => account.name))]
+    },
+    banks: {
+      query: gql`query Accounts {
+        accounts {
+          bank
+        }
+      }`,
+      update: data => [... new Set(data.accounts.map(account => account.bank))]
+    },
   },
 
   methods: {
@@ -70,11 +90,16 @@ export default {
     }
   },
 
+  created() {
+    this.accounts = [... new Set(this.accounts.map(account => account.name))]
+  },
+
   components: { Transactions, FilterBar },
 
   data() {
     return {
       transactions: [],
+      accounts: [],
       searchTerm: null,
       cursor: null,
       filter: null,

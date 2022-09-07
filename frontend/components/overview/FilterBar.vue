@@ -5,6 +5,8 @@
       <input 
         type="text"
         name="search"
+        value=""
+        @input="event => $emit('get-search', event.target.value)"
         :class="tailwindStyles.input"
         placeholder="Search by bank, account, reference, category, amount, currency..."
       >
@@ -18,6 +20,7 @@
         <option value="0" disabled selected>
           No filter applied
         </option>
+        <option v-for="bank in banks" value="bank">{{ bank }}</option>
       </select>
     </div>
     <div :class="`${tailwindStyles.container} w-1/6`">
@@ -29,6 +32,7 @@
         <option value="0" disabled selected>
           No filter applied
         </option>
+        <option v-for="account in accounts" value="account">{{ account }}</option>
       </select>
     </div>
     <div :class="`${tailwindStyles.container}`">
@@ -51,15 +55,18 @@
 </template>
 
 <script>
+import gql from 'graphql-tag';
 export default {
+  props: ['banks', 'accounts', 'query'],
+  
   data() {
     return {
-      banks: [],
-      accounts: [],
       tailwindStyles: {
         input: 'border-2 py-1 px-2 md:rounded-sm',
         container: 'flex flex-col m-1'
-      }
+      },
+      searchTerm: null,
+      filter: null,
     }
   }
 }
