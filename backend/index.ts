@@ -4,15 +4,30 @@ import { ApolloServer, gql } from 'apollo-server';
 const prisma = new PrismaClient();
 
 // TypeScript type declarations
-type QueryArgs = {
+type TransactionsArgs = {
   cursor: string;
   searchTerm: string;
   filter: {
-    bank: string,
-    account: string,
-    startMonth: number,
-    endMonth: number
+    bank: string;
+    account: string;
+    startMonth: number;
+    endMonth: number;
   }
+}
+
+type TransactionArg = {
+  id: string;
+}
+
+type CategoryUpsertArgs = {
+  id: string;
+  name: string;
+  color: string;
+}
+
+type TransactionsUpdateArgs = {
+  id: string;
+  categoryId: string;
 }
 
 // GraphQL types
@@ -28,6 +43,7 @@ const typeDefs = gql`
   }
 
   type Account {
+    id: ID,
     name: String
     bank: String
   }
@@ -37,6 +53,7 @@ const typeDefs = gql`
   }
 
   type Category {
+    id: ID,
     name: String,
     color: String
   }
@@ -50,13 +67,15 @@ const typeDefs = gql`
   
   type Query {
     transactions(cursor: ID, searchTerm: String, filter: Filter): [Transaction]
-    transaction(id: ID!): Transaction
+    transaction(id: ID): Transaction
     categories: [Category]
     accounts: [Account]
   }
 
   type Mutation {
-    addCategory(name: String, color: String): Category
+    categoryUpdate(id: ID, color: String): Category
+    categoryAdd(name: String, color: String): Category
+    transaction(id: ID, categoryId: ID): Transaction
   }
 `
 
@@ -98,7 +117,7 @@ const transactions = [
 // TODO: move to its own module
 const resolvers = {
   Query: {
-    transactions: (parent: unknown, args: QueryArgs, context: unknown, info: unknown) => {
+    transactions: (parent: unknown, args: TransactionsArgs, context: unknown, info: unknown) => {
       const take = 50;
       const searchTermQuery = [
         {
@@ -200,7 +219,7 @@ const resolvers = {
         }
       }
 
-      console.log(args.cursor);
+      // console.log(args.cursor);
 
       // utilizing Prisma's cursor feature for infinite scrolling/pagination
       if (args.cursor) {
@@ -218,11 +237,55 @@ const resolvers = {
         take,
       });
     },
-    // transaction: (parent: any, args: any, context: any, info: any) => {
-    //   transactions.find(record => record.id === args.id);
-    // },
+    transaction: async (parent: unknown, args: TransactionArg, context: unknown, info: unknown) => {
+      console.log(args);
+      if (!args.id) return null;
+      return await prisma.transaction.findUnique({
+        where: {
+          id: args.id
+        },
+        include: {
+          account: true,
+          category: true
+        }
+      })
+    },
     categories: () => prisma.category.findMany(),
     accounts: () => prisma.account.findMany(),
+  },
+  Mutation: {
+    categoryUpdate: async (parent: unknown, args: CategoryUpsertArgs, context: unknown, info: unknown) => {
+      await prisma.category.update({
+        where: {
+          id: args.id
+        },
+        data: {
+          color: args.color,
+        },
+      })
+    },
+    categoryAdd: async (parent: unknown, args: CategoryUpsertArgs, context: unknown, info: unknown) => {
+      await prisma.category.create({
+        data: {
+          name: args.name,
+          color: args.color,
+        },
+      })
+    },
+    transaction: async (parent: unknown, args: TransactionsUpdateArgs, context: unknown, info: unknown) => {
+      return await prisma.transaction.update({
+        where: {
+          id: "8944125f-06ba-4438-a8ef-fd3955862777"
+        },
+        data: {
+          categoryId: args.categoryId
+        },
+        include: {
+          account: true,
+          category: true
+        }
+      })
+    },
   }
 }
 
