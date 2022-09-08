@@ -10,10 +10,12 @@
           :key="tran.id"
           :id="tran.id"
           :reference="tran.reference"
-          :category="tran.category"
+          :categoryName="tran.category ? tran.category.name : null"
+          :categoryColor="tran.category ? tran.category.color : null"
           :date="tran.date"
           :amount="tran.amount"
           :currency="tran.currency"
+          @send-modal="(transactionId) => $emit('open-modal', transactionId)"
         />
       </tbody>
     </table>

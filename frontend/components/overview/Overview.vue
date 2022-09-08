@@ -3,26 +3,33 @@
     <div class="mx-5 my-6 relative shadow-lg sm:rounded-lg max-w-5xl bg-gray-100">
       <div class="p-5 relative">
         <div class="text-xl">Transactions</div>
-        
         <FilterBar
-        :accounts="accounts"
-        :banks="banks"
-        :query="this.$apollo.queries.transactions"
-        @get-search="applySearch"
-        @get-filter="applyFilter"
+          :accounts="accounts"
+          :banks="banks"
+          :query="this.$apollo.queries.transactions"
+          @get-search="applySearch"
+          @get-filter="applyFilter"
         />
 
-        <Transactions :transactions="transactions" />
+        <Transactions 
+          :transactions="transactions"
+          @open-modal="(transactionId) => showModal(transactionId)"
+        />
         
         <div class="flex justify-center">
           <button 
-            class="m-2 px-10 py-1 rounded-xl bg-gray-300 shadow-sm
-            "
-            @click="showMore"
-            >
-            Load More
-          </button>
-        </div>
+          class="m-2 px-10 py-1 rounded-xl bg-gray-300 shadow-sm
+          "
+          @click="showMore"
+          >
+          Load More
+        </button>
+        <TransactionWindow 
+          v-show="isModalVisible"
+          @close="closeModal"
+          :id="detailsId"
+        />
+      </div>
       </div>
     </div>
   </div>
@@ -32,6 +39,7 @@
 import gql from 'graphql-tag';
 import Transactions from "./Transactions.vue";
 import FilterBar from "./FilterBar.vue";
+import TransactionWindow from "../details/TransactionWindow.vue";
 
 export default {
   apollo: {
@@ -40,10 +48,12 @@ export default {
         transactions(searchTerm: $searchTerm, cursor: $cursor, filter: $filter) {
           id
           account {
+            id
             name
             bank
           }
           category {
+            id
             name
             color
           }
@@ -63,6 +73,7 @@ export default {
           endMonth: null,
         },
       },
+      deep: true,
     },
     accounts: {
       query: gql`query Accounts {
@@ -110,14 +121,18 @@ export default {
       console.log(filter);
       this.$apollo.queries.transactions.refetch({ filter });
       this.filter = filter;
+    },
+    showModal(id) {
+      // this.$apollo.queries.transactions.refetch();
+      this.detailsId = id;
+      this.isModalVisible = true;
+    },
+    closeModal() {
+      this.isModalVisible = false;
     }
   },
 
-  created() {
-    this.accounts = [... new Set(this.accounts.map(account => account.name))]
-  },
-
-  components: { Transactions, FilterBar },
+  components: { Transactions, FilterBar, TransactionWindow },
 
   data() {
     return {
@@ -131,6 +146,8 @@ export default {
         startMonth: null,
         endMonth: null,
       },
+      isModalVisible: false,
+      detailsId: null,
     }
   }
 }

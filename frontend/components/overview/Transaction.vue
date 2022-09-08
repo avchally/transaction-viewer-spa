@@ -1,16 +1,18 @@
 <template>
+  <!-- v-if="category && category.name" -->
   <tr 
-    v-if="category && category.name"
     class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-    @click="test"
+    @click="() => $emit('send-modal', id)"
   >
     <th 
       v-if="reference"
       scope="row"
       class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white"
       :id="id"
-      >
-      {{ reference }}
+    >
+      <!-- <button type="button" onclick="() => $emit('send-modal', id)"> -->
+        {{ reference }}
+      <!-- </button> -->
     </th>
     <th 
       v-else
@@ -23,9 +25,9 @@
     <td class="font-medium text-black py-4 px-6">
       <span
         class="border-0 sm:rounded-md px-2 py-1"
-        :style="`background-color: #${category.color || '00ffff'};`"
+        :style="categoryColor ? `background-color: #${categoryColor}` : ''"
       >
-        {{ category.name }}
+        {{ categoryName }}
       </span>
     </td>
     <td class="py-4 px-6">{{ (new Date(date)).toLocaleDateString() }}</td>
@@ -38,19 +40,17 @@
     props: [
       'id',
       'reference',
-      'category',
+      'categoryName',
+      'categoryColor',
       'date',
       'amount',
       'currency',
     ],
     methods: {
-      test() {
-        // console.log(this.category)
-      }
+      // test() {
+      //   this.$router.push(`/${this.id}`)
+      // }
     },
-    created() {
-      // this.test()
-    }
   }
 </script>
 
