@@ -3,7 +3,7 @@
     class="fixed top-0 bottom-0 left-0 right-0 bg-gray-500 bg-opacity-30 flex justify-center items-center"
   >
     <div
-      class="relative bg-white shadow-lg overflow-x-auto flex flex-col h-1/2 w-1/2 justify-between items-center rounded-xl p-16"
+      class="relative bg-white shadow-lg overflow-x-auto flex flex-col min-h-1/2 justify-between items-center rounded-xl p-16"
     >
       <button
         type="button"
