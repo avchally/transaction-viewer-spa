@@ -13,7 +13,7 @@ After cloning the repo, make sure you have Docker installed on your system.
 
 Navigate to ~/backend and run the following command to start the container, the PostgreSQL database, and the backend server:  
 
-`docker-compose up -d --build`  
+`docker-compose up -d`  
 
 To finish setting up the database (and seed it with data), run the following commands. `docker exec {name}` runs the command from within the docker container:  
 
